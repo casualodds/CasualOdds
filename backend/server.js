@@ -1,17 +1,17 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const oddsRouter = require('./routes/odds');
+app.get("/api/odds", async (req, res) => {
+  const axios = await import("axios");
+  const { q = "", league = "", market = "h2h", page = 1 } = req.query;
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+  try {
+    const apiKey = process.env.ODDS_API_KEY;
+    const url = `https://api.the-odds-api.com/v4/sports/${league || "upcoming"}/odds/?regions=us&markets=${market}&oddsFormat=decimal&apiKey=${apiKey}`;
+    
+    const response = await axios.default.get(url);
+    const data = response.data;
 
-app.use(cors());
-app.use(express.json());
-
-app.use('/api/odds', oddsRouter);
-
-// lightweight health check
-app.get('/health', (req,res) => res.json({status:'ok'}));
-
-app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+    res.json({ odds: data });
+  } catch (error) {
+    console.error("Odds API error:", error.response?.data || error.message);
+    res.status(500).json({ error: "Failed to fetch real odds" });
+  }
+});
