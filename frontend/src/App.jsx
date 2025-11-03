@@ -4,9 +4,9 @@ import OddsTable from './components/OddsTable';
 import MiniSummaryPanel from './components/MiniSummaryPanel';
 import DarkModeToggle from './components/DarkModeToggle';
 import TopMoversLeaderboard from './components/TopMoversLeaderboard';
-import { fetchOdds } from './utils/api';
+import { BACKEND_URL } from "./config"; // ✅ import must be at the top, outside the function
 
-export default function App(){
+export default function App() {
   const [odds, setOdds] = useState([]);
   const [query, setQuery] = useState('');
   const [league, setLeague] = useState('');
@@ -16,14 +16,18 @@ export default function App(){
 
   const loadOdds = useCallback(async () => {
     try {
-      import { BACKEND_URL } from "./config";
+      const response = await fetch(
+        `${BACKEND_URL}/api/odds?q=${query}&league=${league}&market=${market}&page=1`
+      );
 
-const response = await fetch(
-  `${BACKEND_URL}/api/odds?q=${query}&league=${league}&market=${market}&page=${page}`
-);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch odds: ${response.status}`);
+      }
+
+      const data = await response.json();
       setOdds(data);
-    } catch(e){
-      console.error(e);
+    } catch (e) {
+      console.error("Error fetching odds:", e);
     }
   }, [query, league, market]);
 
@@ -45,7 +49,9 @@ const response = await fetch(
       <main className="max-w-6xl mx-auto p-4">
         <MiniSummaryPanel odds={odds} />
         <div className="flex gap-4">
-          <div className="flex-1"><OddsTable odds={odds} /></div>
+          <div className="flex-1">
+            <OddsTable odds={odds} />
+          </div>
           <aside className="w-80 hidden lg:block">
             <TopMoversLeaderboard odds={odds} />
           </aside>
