@@ -16,7 +16,11 @@ export default function App(){
 
   const loadOdds = useCallback(async () => {
     try {
-      const data = await fetchOdds(query, league, market);
+      import { BACKEND_URL } from "./config";
+
+const response = await fetch(
+  `${BACKEND_URL}/api/odds?q=${query}&league=${league}&market=${market}&page=${page}`
+);
       setOdds(data);
     } catch(e){
       console.error(e);
