@@ -13,7 +13,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/odds", async (req, res) => {
-  const { q = "", league = "", market = "h2h", page = 1 } = req.query;
+  const { q = "", league = "", market = "all", page = 1 } = req.query;
 
   try {
     const apiKey = process.env.THE_ODDS_API_KEY;
@@ -22,10 +22,31 @@ app.get("/api/odds", async (req, res) => {
     }
 
     const sport = league || "upcoming";
-    const url = `https://api.the-odds-api.com/v4/sports/${sport}/odds/?regions=us&markets=${market}&oddsFormat=decimal&apiKey=${apiKey}`;
 
-    const response = await axios.get(url);
-    res.json({ odds: response.data });
+    // Determine which markets to fetch
+    const marketsToFetch =
+      market === "all" ? ["h2h", "spreads", "totals"] : [market];
+
+    // Fetch all markets in parallel
+    const requests = marketsToFetch.map((mkt) =>
+      axios.get(
+        `https://api.the-odds-api.com/v4/sports/${sport}/odds/?regions=us&markets=${mkt}&oddsFormat=decimal&apiKey=${apiKey}`
+      )
+    );
+
+    const responses = await Promise.allSettled(requests);
+
+    // Merge all valid responses
+    const combinedData = responses
+      .filter((r) => r.status === "fulfilled")
+      .flatMap((r) => r.value.data);
+
+    // If all failed, return an error
+    if (combinedData.length === 0) {
+      throw new Error("All market requests failed");
+    }
+
+    res.json({ odds: combinedData });
   } catch (error) {
     console.error("Odds API error:", error.response?.data || error.message);
     res.status(500).json({ error: "Failed to fetch odds" });
