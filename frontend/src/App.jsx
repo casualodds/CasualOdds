@@ -4,7 +4,7 @@ import OddsTable from './components/OddsTable';
 import MiniSummaryPanel from './components/MiniSummaryPanel';
 import DarkModeToggle from './components/DarkModeToggle';
 import TopMoversLeaderboard from './components/TopMoversLeaderboard';
-import { BACKEND_URL } from "./config"; // ✅ import must be at the top, outside the function
+import { BACKEND_URL } from './config';
 
 export default function App() {
   const [odds, setOdds] = useState([]);
@@ -17,17 +17,15 @@ export default function App() {
   const loadOdds = useCallback(async () => {
     try {
       const response = await fetch(
-        `${BACKEND_URL}/api/odds?q=${query}&league=${league}&market=${market}&page=1`
+        `${BACKEND_URL}/api/odds?q=${encodeURIComponent(query)}&league=${encodeURIComponent(league)}&market=${encodeURIComponent(market)}&page=1`
       );
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch odds: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`Failed to fetch odds: ${response.status}`);
 
       const data = await response.json();
       setOdds(data);
     } catch (e) {
-      console.error("Error fetching odds:", e);
+      console.error('Error loading odds:', e);
     }
   }, [query, league, market]);
 
@@ -49,9 +47,7 @@ export default function App() {
       <main className="max-w-6xl mx-auto p-4">
         <MiniSummaryPanel odds={odds} />
         <div className="flex gap-4">
-          <div className="flex-1">
-            <OddsTable odds={odds} />
-          </div>
+          <div className="flex-1"><OddsTable odds={odds} /></div>
           <aside className="w-80 hidden lg:block">
             <TopMoversLeaderboard odds={odds} />
           </aside>
