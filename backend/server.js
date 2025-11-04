@@ -46,7 +46,8 @@ app.get("/api/odds", async (req, res) => {
       throw new Error("All market requests failed");
     }
 
-    res.json({ odds: combinedData });
+    res.json(combinedData);
+
   } catch (error) {
     console.error("Odds API error:", error.response?.data || error.message);
     res.status(500).json({ error: "Failed to fetch odds" });
