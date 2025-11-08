@@ -23,6 +23,7 @@ export default function App() {
       if (!response.ok) throw new Error(`Failed to fetch odds: ${response.status}`);
 
       const data = await response.json();
+      console.log("Fetched odds data:", data); // 👈 Added for debugging
       setOdds(data.odds || []);
     } catch (e) {
       console.error('Error loading odds:', e);
